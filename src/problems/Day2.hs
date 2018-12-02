@@ -5,23 +5,22 @@ import           Data.List                                ( sort
                                                           )
 import           Data.Map.Lazy                            ( Map )
 import qualified Data.Map.Lazy                 as Map
+import           Data.Set                                 ( Set )
+import qualified Data.Set                      as Set
 
 type ID = String
 type Checksum = Int
 
-countLetters :: ID -> [Int]
-countLetters id = sort . Map.elems $ foldl'
-  (\count k -> Map.insertWith (+) k 1 count)
-  Map.empty
-  id
+makeCount :: ID -> Map Char Int
+makeCount = foldl' (\count k -> Map.insertWith (+) k 1 count) Map.empty
+
+possibleFrequencies :: ID -> Set Int
+possibleFrequencies = Set.fromList . Map.elems . makeCount
 
 checkSumReqs :: ID -> (Bool, Bool)
-checkSumReqs id = (hasExactly2, hasExactly3)
+checkSumReqs id = (2 `Set.member` freqs, 3 `Set.member` freqs)
  where
-  lessThan4   = takeWhile (< 4) $ countLetters id
-  lessThan3   = takeWhile (< 3) lessThan4
-  hasExactly3 = not (null lessThan4) && (last lessThan4 == 3)
-  hasExactly2 = not (null lessThan3) && (last lessThan3 == 2)
+   freqs = possibleFrequencies id
 
 accumTrue :: Int -> Bool -> Int
 accumTrue x cond = if cond then x + 1 else x
